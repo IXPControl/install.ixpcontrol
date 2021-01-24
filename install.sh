@@ -119,10 +119,10 @@ echo "Confirming Docker-Compose is operating"
 docker-compose --version
 	
 # Install Docker-Cleanup ( https://gist.github.com/wdullaer/76b450a0c986e576e98b )
-git clone https://gist.github.com/76b450a0c986e576e98b.git /tmp
-mv /tmp/76b450a0c986e576e98b/docker-cleanup /usr/local/bin/docker-cleanup
+git clone https://gist.github.com/76b450a0c986e576e98b.git /tmp/ixpcontrol/docker-cleanup
+mv /tmp/ixpcontrol/docker-cleanup/docker-cleanup /usr/local/bin/docker-cleanup
 sudo chmod +x /usr/local/bin/docker-cleanup
-#NEED TO FIX ABOVE
+
 
 # Create Folders
 #mkdir -pv 
@@ -171,16 +171,16 @@ days=$((${upSeconds}/86400))
 UPTIME=`printf "%d days, %02dh%02dm%02ds" "$days" "$hours" "$mins" "$secs"`
         clear
         echo ""
-		echo -e "\e[32m      ,a8a,  ,ggg,          ,gg ,ggggggggggg,       ,gggg,                                                                    ";
-		echo -e "\e[32m     ,8\" \"8,dP\"\"\"Y8,      ,dP' dP\"\"\"88\"\"\"\"\"\"Y8,   ,88\"\"\"Y8b,                              I8                            ,dPYb,\e[1m"
-		echo -e "\e[32m     d8   8bYb,_  \"8b,   d8\"   Yb,  88      \`8b  d8\"     \`Y8                              I8                            IP'\`Yb\e[1m"
-		echo -e "\e[32m     88   88 \`\"\"    Y8,,8P'     \`\"  88      ,8P d8'   8b  d8                           88888888                         I8  8I\e[1m"
-		echo -e "\e[32m     88   88         Y88\"           88aaaad8P\" ,8I    \"Y88P'                              I8                            I8  8'\e[1m"
-		echo -e "\e[32m     Y8   8P        ,888b           88\"\"\"\"\"    I8'             ,ggggg,     ,ggg,,ggg,     I8     ,gggggg,    ,ggggg,    I8 dP \e[1m"
-		echo -e "\e[32m     \`8, ,8'       d8\" \"8b,         88         d8             dP\"  \"Y8ggg ,8\" \"8P\" \"8,    I8     dP\"\"\"\"8I   dP\"  \"Y8ggg I8dP  \e[1m"
-		echo -e "\e[32m8888  \"8,8\"      ,8P'    Y8,        88         Y8,           i8'    ,8I   I8   8I   8I   ,I8,   ,8'    8I  i8'    ,8I   I8P   \e[1m"
-		echo -e "\e[32m\`8b,  ,d8b,     d8\"       \"Yb,      88         \`Yba,,_____, ,d8,   ,d8'  ,dP   8I   Yb, ,d88b, ,dP     Y8,,d8,   ,d8'  ,d8b,_ \e[1m"
-		echo -e "\e[32m  \"Y88P\" \"Y8  ,8P'          \"Y8     88           \`\"Y8888888 P\"Y8888P\"    8P'   8I   \`Y888P\"\"Y888P      \`Y8P\"Y8888P\"    8P'\"Y88\e[1m"
+		echo -e "\e[32m ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: \e[1m"
+		echo -e "\e[32m '####:'##::::'##:'########:::'######:::'#######::'##::: ##:'########:'########:::'#######::'##::::::: \e[1m";
+		echo -e "\e[32m . ##::. ##::'##:: ##.... ##:'##... ##:'##.... ##: ###:: ##:... ##..:: ##.... ##:'##.... ##: ##::::::: \e[1m"
+		echo -e "\e[32m : ##:::. ##'##::: ##:::: ##: ##:::..:: ##:::: ##: ####: ##:::: ##:::: ##:::: ##: ##:::: ##: ##::::::: \e[1m"
+		echo -e "\e[32m : ##::::. ###:::: ########:: ##::::::: ##:::: ##: ## ## ##:::: ##:::: ########:: ##:::: ##: ##::::::: \e[1m"
+		echo -e "\e[32m : ##:::: ## ##::: ##.....::: ##::::::: ##:::: ##: ##. ####:::: ##:::: ##.. ##::: ##:::: ##: ##::::::: \e[1m"
+		echo -e "\e[32m : ##::: ##:. ##:: ##:::::::: ##::: ##: ##:::: ##: ##:. ###:::: ##:::: ##::. ##:: ##:::: ##: ##::::::: \e[1m"
+		echo -e "\e[32m '####: ##:::. ##: ##::::::::. ######::. #######:: ##::. ##:::: ##:::: ##:::. ##:. #######:: ########: \e[1m"
+		echo -e "\e[32m ....::..:::::..::..::::::::::......::::.......:::..::::..:::::..:::::..:::::..:::.......:::........:: \e[1m"
+		echo -e "\e[32m :::::::::::::::::::::::::::::::::::: https://www.ixpcontrol.com :::::::::::::::::::::::::::(v 0.1a):: \e[1m"
         echo -e "\e[1;35mSystem Uptime: $UPTIME \e[1m\e[0m"
         echo "IPv4: $v4Addr - IPv6: $v6Addr"
 if [ "${RS1Status}" ]; then
@@ -193,7 +193,6 @@ fi
         echo ""
         echo "For IXPControl Commands, Please Use The Command 'ixpcontrol_help'"
 EOL
-
 
 
 cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
@@ -258,6 +257,7 @@ cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
     image: ixpcontrol/bird.rs
     container_name: Upstream_BGP
     restart: always
+	privileged: true
     network_mode: host
     environment:
       PUID: 1001
@@ -359,11 +359,7 @@ protocol kernel {
 }
 
 protocol static export_routes {
-    route $bgp6Anchor via $bg6pListen;
-    route 2a0a:6040:dead::/48 via $bgp6Listen;
-    route 2a0a:6040:beef::/48 via $bgp6Listen;
-	route 2a0a:6040:ac1::/48 via $bgp6Listen;
-	route 2a0a:6040:ac2::/48 via $bgp6Listen;
+    route $bgp6Anchor via $bgp6Listen;
 }
 
 protocol device {
@@ -406,7 +402,8 @@ echo "Setting $zeroNetwork!"
 
 cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
   zerotier:
-    image: croc/zerotier
+    image: ixpcontrol/zerotier
+	container_name: ZeroTier
     network_mode: host
     privileged: true
     restart: always
@@ -430,8 +427,9 @@ fi
 cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
   routeserver:
     image: ixpcontrol/bird.rs
-    container_name: routeserver
+    container_name: RouteServer
     restart: unless-stopped
+	privileged: true
     network_mode: host
     environment:
       PUID: 1001
@@ -463,6 +461,8 @@ cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
 
 EOL
 
+## Add info here, to set up RS Configs :)
+
 
 read -p "Add Watchtower for Auto-Update of Docker Containers?" -n 1 -r
 echo  ""
@@ -492,7 +492,7 @@ cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
 
 ## ARouteServer ( https://arouteserver.readthedocs.io )
   arouteserver:
-    build: ixpcontrol/arouteserver
+    image: ixpcontrol/arouteserver
     container_name: arouteserver
     restart: unless-stopped
     network:
@@ -563,16 +563,16 @@ fi
 
 start_ixpcontrol
 
-echo -e "\e[32m      ,a8a,  ,ggg,          ,gg ,ggggggggggg,       ,gggg,                                                                    ";
-echo -e "\e[32m     ,8\" \"8,dP\"\"\"Y8,      ,dP' dP\"\"\"88\"\"\"\"\"\"Y8,   ,88\"\"\"Y8b,                              I8                            ,dPYb,\e[1m"
-echo -e "\e[32m     d8   8bYb,_  \"8b,   d8\"   Yb,  88      \`8b  d8\"     \`Y8                              I8                            IP'\`Yb\e[1m"
-echo -e "\e[32m     88   88 \`\"\"    Y8,,8P'     \`\"  88      ,8P d8'   8b  d8                           88888888                         I8  8I\e[1m"
-echo -e "\e[32m     88   88         Y88\"           88aaaad8P\" ,8I    \"Y88P'                              I8                            I8  8'\e[1m"
-echo -e "\e[32m     Y8   8P        ,888b           88\"\"\"\"\"    I8'             ,ggggg,     ,ggg,,ggg,     I8     ,gggggg,    ,ggggg,    I8 dP \e[1m"
-echo -e "\e[32m     \`8, ,8'       d8\" \"8b,         88         d8             dP\"  \"Y8ggg ,8\" \"8P\" \"8,    I8     dP\"\"\"\"8I   dP\"  \"Y8ggg I8dP  \e[1m"
-echo -e "\e[32m8888  \"8,8\"      ,8P'    Y8,        88         Y8,           i8'    ,8I   I8   8I   8I   ,I8,   ,8'    8I  i8'    ,8I   I8P   \e[1m"
-echo -e "\e[32m\`8b,  ,d8b,     d8\"       \"Yb,      88         \`Yba,,_____, ,d8,   ,d8'  ,dP   8I   Yb, ,d88b, ,dP     Y8,,d8,   ,d8'  ,d8b,_ \e[1m"
-echo -e "\e[32m  \"Y88P\" \"Y8  ,8P'          \"Y8     88           \`\"Y8888888 P\"Y8888P\"    8P'   8I   \`Y888P\"\"Y888P      \`Y8P\"Y8888P\"    8P'\"Y88\e[1m"
+echo -e "\e[32m ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: \e[1m"
+echo -e "\e[32m '####:'##::::'##:'########:::'######:::'#######::'##::: ##:'########:'########:::'#######::'##::::::: \e[1m";
+echo -e "\e[32m . ##::. ##::'##:: ##.... ##:'##... ##:'##.... ##: ###:: ##:... ##..:: ##.... ##:'##.... ##: ##::::::: \e[1m"
+echo -e "\e[32m : ##:::. ##'##::: ##:::: ##: ##:::..:: ##:::: ##: ####: ##:::: ##:::: ##:::: ##: ##:::: ##: ##::::::: \e[1m"
+echo -e "\e[32m : ##::::. ###:::: ########:: ##::::::: ##:::: ##: ## ## ##:::: ##:::: ########:: ##:::: ##: ##::::::: \e[1m"
+echo -e "\e[32m : ##:::: ## ##::: ##.....::: ##::::::: ##:::: ##: ##. ####:::: ##:::: ##.. ##::: ##:::: ##: ##::::::: \e[1m"
+echo -e "\e[32m : ##::: ##:. ##:: ##:::::::: ##::: ##: ##:::: ##: ##:. ###:::: ##:::: ##::. ##:: ##:::: ##: ##::::::: \e[1m"
+echo -e "\e[32m '####: ##:::. ##: ##::::::::. ######::. #######:: ##::. ##:::: ##:::: ##:::. ##:. #######:: ########: \e[1m"
+echo -e "\e[32m ....::..:::::..::..::::::::::......::::.......:::..::::..:::::..:::::..:::::..:::.......:::........:: \e[1m"
+echo -e "\e[32m :::::::::::::::::::::::::::::::::::: https://www.ixpcontrol.com :::::::::::::::::::::::::::(v 0.1a):: \e[1m"
 echo "IXPControl: http://$IP_ADDR:9999"
 echo "MySQL Username: root"
 echo "MySQL Password: $MYSQLROOT"
