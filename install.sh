@@ -63,7 +63,7 @@ fi
 # Remove Existing Docker Install
 apt-get -yq remove docker docker-engine docker.io containerd runc
 	
-apt-get -yq update && apt-get install software-properties-common gnupg2 -qy
+apt-get -yq update && apt-get install apt-transport-https ca-certificates curl gnupg2 software-properties-common -qy
 	
 # Add Repos
 add-apt-repository main 2>&1 >> /dev/null
@@ -90,6 +90,9 @@ apt-get -yq install \
   git \
   nano \
   wget \
+  docker-ce \
+  docker-ce-cli \
+  containerd.io
   
 # Get Variables..
 IP_ADDR=$(curl -s https://api.ipify.org) 
@@ -99,9 +102,6 @@ COMPOSE_VERSION=$(git ls-remote https://github.com/docker/compose | grep refs/ta
 MYSQLPASS=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 10 | head -n 1)
 MYSQLROOT=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 10 | head -n 1)
   
-# Install Docker
-apt-get install -qy docker-ce docker-ce-cli containerd.io
-
 # Enable & Start Docker
 systemctl enable docker
 systemctl start docker
