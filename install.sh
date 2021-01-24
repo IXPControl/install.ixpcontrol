@@ -63,6 +63,8 @@ fi
 # Remove Existing Docker Install
 apt-get -yq remove docker docker-engine docker.io containerd runc
 	
+apt-get -yq update && apt-get install software-properties-common gnupg2 -qy
+	
 # Add Repos
 add-apt-repository main 2>&1 >> /dev/null
 add-apt-repository universe 2>&1 >> /dev/null
@@ -75,7 +77,6 @@ add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(
 
 # Install Dependancies
 
-apt-get -yq update && \
 apt-get -yq install \
   apt-transport-https \
   ca-certificates \
@@ -89,7 +90,6 @@ apt-get -yq install \
   git \
   nano \
   wget \
-  software-properties-common
   
 # Get Variables..
 IP_ADDR=$(curl -s https://api.ipify.org) 
