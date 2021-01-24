@@ -424,6 +424,7 @@ cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
       - NETWORK_REGIONAL=$zeroSecondary
 EOL
 fi
+fi
 
 #Add Routeserver to Docker-Compose
 cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
@@ -435,8 +436,25 @@ cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
     environment:
       PUID: 1001
       PGID: 1001
-      IPV4_ENABLE: disabled
+EOL
+read -p "RouteServer - Enable Bird4 for IPv4 Sessions? [Y/N]" -n 1 -r
+echo  ""
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
+      IPV4_ENABLE: enabled
+EOL
+fi
+
+read -p "RouteServer - Enable Bird6 for IPv6 Sessions? [Y/N]" -n 1 -r
+echo  ""
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
       IPV6_ENABLE: enabled
+EOL
+fi
+cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
     volumes:
       - /opt/ixpcontrol/data/routeserver/bird.conf:/usr/local/etc/bird.conf
       - /opt/ixpcontrol/data/routeserver/bird6.conf:/usr/local/etc/bird6.conf
@@ -461,6 +479,8 @@ cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
    command: --interval 500
    
 EOL
+
+fi
 
 read -p "Add ARouteServer? (Manual configuration required)" -n 1 -r
 echo  ""
@@ -494,7 +514,7 @@ cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
 EOL
 
 
-
+fi
 
 
 read -p "Install the Panel Stuff?" -n 1 -r
@@ -538,15 +558,7 @@ cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
       - /opt/ixpcontrol/data/mariadb/conf:/etc/mysql
 EOL
 	 
-	 
-
-read -p "Want to add PowerDNS (PDNS) Stack to IXPControl?" -n 1 -r
-echo  ""
-if [[ $REPLY =~ ^[Yy]$ ]]
-then
-
-
-fi
+fi	 
 
 
 start_ixpcontrol
