@@ -122,7 +122,7 @@ docker-compose --version
 git clone https://gist.github.com/76b450a0c986e576e98b.git /tmp
 mv /tmp/76b450a0c986e576e98b/docker-cleanup /usr/local/bin/docker-cleanup
 sudo chmod +x /usr/local/bin/docker-cleanup
-
+#NEED TO FIX ABOVE
 
 # Create Folders
 #mkdir -pv 
@@ -252,10 +252,25 @@ then
 add-apt-repository ppa:cz.nic-labs/bird
 apt-get -qy install bird
 
+cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
+
+  upstreambgp:
+    image: ixpcontrol/bird.rs
+    container_name: Upstream_BGP
+    restart: always
+    network_mode: host
+    environment:
+      PUID: 1001
+      PGID: 1001
+EOL
+
 read -p "IPv4 Session? [Y/N]" -n 1 -r
 echo  ""
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
+cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
+      IPV4_ENABLE: enabled
+EOL
 read -p "Listen Address: "  bgp4Listen
 echo "Setting $bgpListen"
 read -p "Your ASN (NUMBERS ONLY): "  bgp4ASN
@@ -309,12 +324,15 @@ cat >> /opt/ixpcontrol/data/bgp/bird.conf <<EOL
 #}
 
 EOL
-
+fi
 
 read -p "IPv6 Session? [Y/N]" -n 1 -r
 echo  ""
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
+cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
+      IPV6_ENABLE: enabled
+EOL
 read -p "Listen Address: "  bgp6Listen
 echo "Setting $bgpListen"
 read -p "Your ASN (NUMBERS ONLY): "  bgp6ASN
@@ -368,19 +386,9 @@ EOL
 
 fi
 
+fi
 
 cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
-
-  upstreambgp:
-    image: ixpcontrol/bird.rs.docker
-    container_name: Upstream_BGP
-    restart: always
-    network_mode: host
-    environment:
-      PUID: 1001
-      PGID: 1001
-      IPV4_ENABLE: disabled
-      IPV6_ENABLE: enabled
     volumes:
       - /opt/ixpcontrol/data/bgp/bird.conf:/usr/local/etc/bird.conf
       - /opt/ixpcontrol/data/bgp/bird6.conf:/usr/local/etc/bird6.conf
@@ -405,7 +413,7 @@ echo "Setting $zeroNetwork!"
 cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
   zerotier:
     image: croc/zerotier
-	network_mode: host
+    network_mode: host
     privileged: true
     restart: always
     environment:
