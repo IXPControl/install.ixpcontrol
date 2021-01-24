@@ -397,12 +397,6 @@ cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
 
 EOL
 
-fi
-
-fi
-
-
-
 read -p "Include ZeroTier for Virtual Connections? [Y/N]" -n 1 -r
 echo  ""
 if [[ $REPLY =~ ^[Yy]$ ]]
