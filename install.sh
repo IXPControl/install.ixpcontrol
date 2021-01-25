@@ -36,6 +36,7 @@ add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(
 
 # Install Dependancies
 
+apt-get update -yq && \
 apt-get -yq install \
   apt-transport-https \
   ca-certificates \
@@ -202,7 +203,7 @@ services:
 
 EOL
 
-read -p "Use BIRD for BGP Session to Upstream?" -n 1 -r
+read -p "Use BIRD for BGP Session to Upstream? [Y/N]" -n 1 -r
 echo  ""
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
@@ -241,47 +242,45 @@ read -p "Anchor Subnet: "  bgp4Anchor
 echo "Setting $bgpAnchor"
 
 cat >> /opt/ixpcontrol/data/bgp/bird.conf <<EOL
-#router id $IP_ADDR;
-#
-#listen bgp address $bgpListen port 180;
-#
-#log syslog { debug, trace, info, remote, warning, error, auth, fatal, bug };
-#log stderr all;
-#
-#protocol kernel {
-#       learn;                  # Learn all alien routes from the kernel
-#        persist;                # Don't remove routes on bird shutdown
-#        scan time 20;           # Scan kernel routing table every 20 seconds
-#       import none;            # Default is import all
-#        export none;            # Default is export none
-#       kernel table 5;         # Kernel table to synchronize with (default: main)
-#}
-#
-#protocol static export_routes {
-#    route $bgp6Anchor via $bgp6Listen;
-#    route 2a0a:6040:dead::/48 via $bgp6Listen;
-#    route 2a0a:6040:beef::/48 via $bgp6Listen;
-#	route 2a0a:6040:ac1::/48 via $bgp6Listen;
-#	route 2a0a:6040:ac2::/48 via $bgp6Listen;
-#}
-#
-#protocol device {
-#        scan time 60;           # Scan interfaces every 10 seconds
-#}
-#
-# Disable automatically generating direct routes to all network interfaces.
-#protocol direct {
-#        disabled;               # Disable by default
-#}
-#
-#protocol bgp {
-#        import all;
-#        export where proto = "export_routes";
-#        local as $bgpASN;
-#        neighbor $bgpUpNeigh as $bgpUpASN;
-#}
+router id $IP_ADDR;
+
+listen bgp address $bgp4Listen port 180;
+
+log syslog { debug, trace, info, remote, warning, error, auth, fatal, bug };
+log stderr all;
+
+protocol kernel {
+       learn;                  # Learn all alien routes from the kernel
+        persist;                # Don't remove routes on bird shutdown
+        scan time 20;           # Scan kernel routing table every 20 seconds
+       import none;            # Default is import all
+        export none;            # Default is export none
+       kernel table 5;         # Kernel table to synchronize with (default: main)
+}
+
+protocol static export_routes {
+    route $bgp4Anchor via $bgp4Listen;
+}
+
+protocol device {
+        scan time 60;           # Scan interfaces every 10 seconds
+}
+
+ Disable automatically generating direct routes to all network interfaces.
+protocol direct {
+        disabled;               # Disable by default
+}
+
+protocol bgp {
+        import all;
+        export where proto = "export_routes";
+        local as $bgp4ASN;
+        neighbor $bgp4UpNeigh as $bgp4UpASN;
+}
 
 EOL
+else
+echo "#NEW FILE#" > /opt/ixpcontrol/data/bgp/bird.conf
 fi
 
 read -p "IPv6 Session? [Y/N]" -n 1 -r
@@ -338,6 +337,8 @@ protocol bgp {
 
 EOL
 
+else
+echo "#NEW FILE#" > /opt/ixpcontrol/data/bgp/bird.conf
 fi
 
 fi
@@ -387,7 +388,7 @@ cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
     image: ixpcontrol/bird.rs
     container_name: RouteServer
     restart: unless-stopped
-	privileged: true
+    privileged: true
     network_mode: host
     environment:
       PUID: 1001
@@ -422,7 +423,7 @@ EOL
 ## Add info here, to set up RS Configs :)
 
 
-read -p "Add Watchtower for Auto-Update of Docker Containers?" -n 1 -r
+read -p "Add Watchtower for Auto-Update of Docker Containers?  [Y/N]" -n 1 -r
 echo  ""
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
@@ -440,7 +441,7 @@ EOL
 
 fi
 
-read -p "Add ARouteServer? (Manual configuration required)" -n 1 -r
+read -p "Add ARouteServer? (Manual configuration required)  [Y/N]" -n 1 -r
 echo  ""
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
@@ -475,7 +476,7 @@ EOL
 fi
 
 
-read -p "Install the Panel Stuff?" -n 1 -r
+read -p "Install the Panel Stuff?  [Y/N]" -n 1 -r
 echo  ""
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
@@ -504,7 +505,7 @@ cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
       MYSQL_DATABASE: ixpcontrol
       MYSQL_USER: ixpcontrol
       MYSQL_PASSWORD: $MYSQLPASS
-      networks:
+    networks:
         peering_v4:
             ipv4_address: 10.10.$IXPID.3
         peering_v6:
