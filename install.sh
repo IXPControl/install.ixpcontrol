@@ -241,7 +241,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /opt/ixpcontrol/data/portainer:/data
-	  
+
 EOL
 
 read -p "Use BIRD for BGP Session to Upstream?" -n 1 -r
@@ -257,7 +257,7 @@ cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
     image: ixpcontrol/bird.rs
     container_name: Upstream_BGP
     restart: always
-	privileged: true
+    privileged: true
     network_mode: host
     environment:
       PUID: 1001
@@ -403,7 +403,7 @@ echo "Setting $zeroNetwork!"
 cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
   zerotier:
     image: ixpcontrol/zerotier
-	container_name: ZeroTier
+    container_name: ZeroTier
     network_mode: host
     privileged: true
     restart: always
@@ -495,7 +495,7 @@ cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
     image: ixpcontrol/arouteserver
     container_name: arouteserver
     restart: unless-stopped
-    network:
+    networks:
         peering_v4:
             ipv4_address: 10.10.$IXPID.2
         peering_v6:
@@ -533,24 +533,24 @@ cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
       - 9999:80
     links:
       - mariadb
-	volumes: 
+    volumes: 
       - /opt/ixpcontrol/www:/var/www/html
-	  - /opt/ixpcontrol/logs/apache2:/var/log/apache2
-	  - /opt/ixpcontrol/data/apache2/data:/etc/apache2
+      - /opt/ixpcontrol/logs/apache2:/var/log/apache2
+      - /opt/ixpcontrol/data/apache2/data:/etc/apache2
 
   mariadb:
     image: ixpcontrol/mariadb
-	container_name: mariadb
+    container_name: mariadb
     environment:
       MYSQL_ROOT_PASSWORD: $MYSQLROOT
       MYSQL_DATABASE: ixpcontrol
       MYSQL_USER: ixpcontrol
       MYSQL_PASSWORD: $MYSQLPASS
-	    network:
+      networks:
         peering_v4:
-            ipv4_address: 10.10.$IXPID.2
+            ipv4_address: 10.10.$IXPID.3
         peering_v6:
-            ipv6_address: fd83:7684:f21d:$IP6_GEN:c$IXPID::2  
+            ipv6_address: fd83:7684:f21d:$IP6_GEN:c$IXPID::3
     restart: always
     volumes:
       - /opt/ixpcontrol/data/mariadb/data:/var/lib/mysql/data
