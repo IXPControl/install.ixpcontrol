@@ -62,18 +62,13 @@ fi
 	
 # Remove Existing Docker Install
 apt-get -yq remove docker docker-engine docker.io containerd runc
-	
-apt-get -yq update && apt-get install apt-transport-https ca-certificates curl gnupg2 software-properties-common -qy
-	
+
 # Add Repos
-add-apt-repository main 2>&1 >> /dev/null
-add-apt-repository universe 2>&1 >> /dev/null
-add-apt-repository restricted 2>&1 >> /dev/null
-add-apt-repository multiverse 2>&1 >> /dev/null
 curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
 apt-key fingerprint 0EBFCD88
 add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
-
+apt-get -yq update && apt-get install apt-transport-https ca-certificates curl gnupg2 software-properties-common -qy
+	
 
 # Install Dependancies
 
@@ -95,8 +90,7 @@ apt-get -yq install \
   containerd.io
   
 # Get Variables..
-IP_ADDR=$(curl -s https://api.ipify.org) 
-#IP_ADDR=$(curl -s https://ip.ixpcontrol.com)
+IP_ADDR=$(curl -s https://ip.ixpcontrol.com)
 IP6_GEN=$(cat /dev/urandom | tr -dc 'a-f0-9' | fold -w 4 | head -n 1)
 COMPOSE_VERSION=$(git ls-remote https://github.com/docker/compose | grep refs/tags | grep -oE "[0-9]+\.[0-9][0-9]+\.[0-9]+$" | sort --version-sort | tail -n 1)
 MYSQLPASS=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 10 | head -n 1)
