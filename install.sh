@@ -254,7 +254,7 @@ apt-get -qy install bird
 cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
 
   upstreambgp:
-    image: ixpcontrol/bird.rs
+    image: ixpcontrol/bird.upstream
     container_name: Upstream_BGP
     restart: always
     privileged: true
