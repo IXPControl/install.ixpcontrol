@@ -4,43 +4,8 @@ if [[ "$EUID" -ne 0 ]]; then
 	exit
 fi
 
-# Detect OS
-# $os_version variables aren't always in use, but are kept here for convenience
-if grep -qs "ubuntu" /etc/os-release; then
-	os="ubuntu"
-	os_version=$(grep 'VERSION_ID' /etc/os-release | cut -d '"' -f 2 | tr -d '.')
-	group_name="nogroup"
-elif [[ -e /etc/debian_version ]]; then
-	os="debian"
-	os_version=$(grep -oE '[0-9]+' /etc/debian_version | head -1)
-	group_name="nogroup"
-elif [[ -e /etc/centos-release ]]; then
-	os="centos"
-	os_version=$(grep -oE '[0-9]+' /etc/centos-release | head -1)
-	group_name="nobody"
-elif [[ -e /etc/fedora-release ]]; then
-	os="fedora"
-	os_version=$(grep -oE '[0-9]+' /etc/fedora-release | head -1)
-	group_name="nobody"
-else
-	echo "Unsupported Operating System"
-	exit
-fi
 
-if [[ "$os" == "ubuntu" && "$os_version" -lt 1804 ]]; then
-	echo "Unsupported Operating System"
-	exit
-fi
-
-if [[ "$os" == "debian" && "$os_version" -lt 9 ]]; then
-	echo "Supported Operating System"
-	exit
-fi
-
-if [[ "$os" == "centos" && "$os_version" -lt 7 ]]; then
-	echo "Unsupported Operating System"
-	exit
-fi
+apt-get -yq update && apt-get -yq upgrade && apt-get install apt-transport-https ca-certificates curl gnupg2 software-properties-common -qy
 
 echo -n "OceanIXP Server ID [0-9]: "
 read IXPID
@@ -48,6 +13,7 @@ if [[ ! $IXPID =~ ^[0-9]+$ ]] ; then
     echo "Whoops.. try again, numbers between zero and nine please."
     exit
 fi
+
 
 # Enable net.ipv4.ip_forward for the system
 	echo 'net.ipv4.ip_forward=1' > /etc/sysctl.d/30-ixpcontrol-forward.conf
@@ -60,10 +26,6 @@ fi
 		echo 1 > /proc/sys/net/ipv6/conf/all/forwarding
 	fi
 	
-# Remove Existing Docker Install
-apt-get -yq remove docker docker-engine docker.io containerd runc
-
-apt-get -yq update && apt-get -yq upgrade && apt-get install apt-transport-https ca-certificates curl gnupg2 software-properties-common -qy
 
 # Add Repos
 curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
