@@ -63,7 +63,7 @@ fi
 # Remove Existing Docker Install
 apt-get -yq remove docker docker-engine docker.io containerd runc
 	
-apt-get -yq update && apt-get install apt-transport-https git ca-certificates curl gnupg2 software-properties-common -qy
+apt-get -yq update && apt-get install apt-transport-https ca-certificates curl gnupg2 software-properties-common -qy
 	
 # Add Repos
 add-apt-repository main 2>&1 >> /dev/null
