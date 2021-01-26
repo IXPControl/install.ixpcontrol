@@ -88,10 +88,8 @@ sudo chmod +x /usr/local/bin/docker-cleanup
 #Data Folders
 mkdir -pv /opt/ixpcontrol/data/bgp;
 mkdir -pv /opt/ixpcontrol/data/portainer;
-mkdir -pv /opt/ixpcontrol/data/routeserver/v4/CONFIG;
-mkdir -pv /opt/ixpcontrol/data/routeserver/v4/PEERS;
-mkdir -pv /opt/ixpcontrol/data/routeserver/v6/CONFIG;
-mkdir -pv /opt/ixpcontrol/data/routeserver/v6/PEERS;
+mkdir -pv /opt/ixpcontrol/data/routeserver/CONFIG;
+mkdir -pv /opt/ixpcontrol/data/routeserver/PEERS;
 mkdir -pv /opt/ixpcontrol/data/routeserver/SHARED;
 mkdir -pv /opt/ixpcontrol/data/arouteserver;
 mkdir -pv /opt/ixpcontrol/data/mariadb/data;
@@ -557,9 +555,7 @@ cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
     volumes:
       - /opt/ixpcontrol/data/routeserver/bird.conf:/usr/local/etc/bird.conf
       - /opt/ixpcontrol/data/routeserver/bird6.conf:/usr/local/etc/bird6.conf
-	  - /opt/ixpcontrol/data/routeserver/v4:/usr/local/etc/v4
-      - /opt/ixpcontrol/data/routeserver/v6:/usr/local/etc/v6
-	  - /opt/ixpcontrol/data/routeserver/shared:/usr/local/etc/shared
+	  - /opt/ixpcontrol/data/routeserver:/root/ixpcontrol
       - /opt/ixpcontrol/logs/routeserver/bird.log:/var/log/bird.log
       - /opt/ixpcontrol/logs/routeserver/bird6.log:/var/log/bird6.log
 
@@ -579,9 +575,7 @@ cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
         peering_v6:
             ipv6_address: fd83:7684:f21d:$IP6_GEN:c$IXPID::4
     volumes:
-      - /opt/ixpcontrol/data/routeserver/v4:/root/ixpcontrol/v4
-      - /opt/ixpcontrol/data/routeserver/v6:/root/ixpcontrol/v6
-      - /opt/ixpcontrol/data/routeserver/shared:/usr/local/etc/shared
+      - /opt/ixpcontrol/data/routeserver:/root/ixpcontrol
     restart: always
 
 EOL
