@@ -88,7 +88,11 @@ sudo chmod +x /usr/local/bin/docker-cleanup
 #Data Folders
 mkdir -pv /opt/ixpcontrol/data/bgp;
 mkdir -pv /opt/ixpcontrol/data/portainer;
-mkdir -pv /opt/ixpcontrol/data/routeserver;
+mkdir -pv /opt/ixpcontrol/data/routeserver/v4/CONFIG;
+mkdir -pv /opt/ixpcontrol/data/routeserver/v4/PEERS;
+mkdir -pv /opt/ixpcontrol/data/routeserver/v6/CONFIG;
+mkdir -pv /opt/ixpcontrol/data/routeserver/v6/PEERS;
+mkdir -pv /opt/ixpcontrol/data/routeserver/SHARED;
 mkdir -pv /opt/ixpcontrol/data/arouteserver;
 mkdir -pv /opt/ixpcontrol/data/mariadb/data;
 mkdir -pv /opt/ixpcontrol/data/mariadb/conf;
@@ -211,7 +215,6 @@ add-apt-repository ppa:cz.nic-labs/bird
 apt-get -qy install bird
 
 cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
-
   upstreambgp:
     image: ixpcontrol/bird.upstream
     container_name: Upstream_BGP
@@ -384,6 +387,7 @@ fi
 
 #Add Routeserver to Docker-Compose
 cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
+
   routeserver:
     image: ixpcontrol/bird.rs
     container_name: RouteServer
@@ -415,12 +419,170 @@ cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
     volumes:
       - /opt/ixpcontrol/data/routeserver/bird.conf:/usr/local/etc/bird.conf
       - /opt/ixpcontrol/data/routeserver/bird6.conf:/usr/local/etc/bird6.conf
+	  - /opt/ixpcontrol/data/routeserver/v4:/usr/local/etc/v4
+      - /opt/ixpcontrol/data/routeserver/v6:/usr/local/etc/v6
+	  - /opt/ixpcontrol/data/routeserver/shared:/usr/local/etc/shared
       - /opt/ixpcontrol/logs/routeserver/bird.log:/var/log/bird.log
       - /opt/ixpcontrol/logs/routeserver/bird6.log:/var/log/bird6.log
 
 EOL
 
+read -p "Add BGPQ3 for Automated IRR Filtering?  [Y/N]" -n 1 -r
+echo  ""
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
+  bgpq3:
+    image: ixpcontrol/bgpq4.rs
+    container_name: BGPQ4.RS
+    networks:
+        peering_v4:
+            ipv4_address: 10.10.$IXPID.4
+        peering_v6:
+            ipv6_address: fd83:7684:f21d:$IP6_GEN:c$IXPID::4
+    volumes:
+	  - /opt/ixpcontrol/data/routeserver/v4:/root/ixpcontrol/v4
+      - /opt/ixpcontrol/data/routeserver/v6:/root/ixpcontrol/v6
+	  - /opt/ixpcontrol/data/routeserver/shared:/usr/local/etc/shared
+    restart: always
+
+EOL
+fi
+
 ## Add info here, to set up RS Configs :)
+
+
+##IPv4 GEN
+read -p "RouteServer IPv4 IP (ie, 10.10.5.1 : "  rs_ip4
+echo "Setting $rs_ip4!"
+
+read -p "RouteServer IPv4 ASN (Note: Cannot Use as a CLIENT): "  rs4_asn
+echo "Setting $rs4_asn!"
+
+cat > /opt/ixpcontrol/data/routeserver/bird6.conf <<EOL
+router id $rs_ip4;
+
+define RS_ASN		= $rs4_asn;
+define RS_IP		= $rs_ip4;
+define PREFIX_MIN	= 48;
+define RS_ID		= $rs_ip4;
+define PREFIX_MAX	= 8;
+
+listen bgp address RS_IP;
+
+include "/root/ixpcontrol/SHARED/*.conf";
+include "/root/ixpcontrol/v4/CONFIG/*.conf";
+include "/root/ixpcontrol/v4/PEERS/*/prefix_v4.conf";
+include "/root/ixpcontrol/v4/PEERS/*/peer_v4.conf";
+EOL
+
+cat > /opt/ixpcontrol/data/routeserver/CONFIG/bogons.conf <<EOL
+define V4_BOGONS = [
+    0.0.0.0/0, 
+    0.0.0.0/8+, 
+    10.0.0.0/8+, 
+    100.64.0.0/10, 
+    127.0.0.0/8, 
+    192.168.0.0/16+, 
+    169.254.0.0/16+, 
+    192.0.2.0/24+, 
+    172.16.0.0/12+, 
+    224.0.0.0/3+, 
+    198.51.100.0/24+, 
+    198.18.0.0/15+, 
+    203.0.113.0/24+, 
+    224.0.0.0/4,
+    240.0.0.0/4
+];
+
+define ASN_BOGONS = [
+    0,                      # RFC 7607
+    23456,                  # RFC 4893 AS_TRANS
+    64496..64511,           # RFC 5398 and documentation/example ASNs
+    64512..65534,           # RFC 6996 Private ASNs
+    65535,                  # RFC 6996 Last 16 bit ASN
+    65536..65551,           # RFC 5398 and documentation/example ASNs
+    65552..131071,          # RFC IANA reserved ASNs
+    4200000000..4294967294, # RFC 6996 Private ASNs
+    4294967295              # RFC 6996 Last 32 bit ASN
+];
+EOL
+
+##IPv6 GEN
+
+read -p "RouteServer IPv6 IP (ie, 2a0a:2a0a:2a0a::1 : "  rs_ip6
+echo "Setting $rs_ip6!"
+
+read -p "RouteServer IPv6 ASN (Note: Cannot Use as a CLIENT): "  rs6_asn
+echo "Setting $rs6_asn!"
+
+cat > /opt/ixpcontrol/data/routeserver/bird6.conf <<EOL
+router id 10.10.$IXPID.1;
+
+define RS_ASN		= $rs6_asn;
+define RS_IP		= $rs_ip6;
+define PREFIX_MIN	= 48;
+define RS_ID		= 10.10.$IXPID.1;
+define PREFIX_MAX	= 8;
+
+listen bgp address RS_IP;
+
+include "/root/ixpcontrol/SHARED/*.conf";
+include "/root/ixpcontrol/v6/CONFIG/*.conf";
+include "/root/ixpcontrol/v6/PEERS/*/prefix_v6.conf";
+include "/root/ixpcontrol/v6/PEERS/*/peer_v6.conf";
+EOL
+
+
+cat > /opt/ixpcontrol/data/routeserver/CONFIG/bogons.conf <<EOL
+define V6_BOGONS = [
+    0000::/8+,
+    0100::/8+,
+    0200::/7+,
+    0400::/6+,
+    0800::/5+,
+    1000::/4+,
+    4000::/3+,
+    6000::/3+,
+    8000::/3+,
+    A000::/3+,
+    C000::/3+,
+    E000::/4+,
+    F000::/5+,
+    F800::/6+,
+    FC00::/7+,
+    FE00::/9+,
+    FE80::/10+,
+    FEC0::/10+,
+    FF00::/8+ 
+];
+
+define ASN_BOGONS = [
+    0,                      # RFC 7607
+    23456,                  # RFC 4893 AS_TRANS
+    64496..64511,           # RFC 5398 and documentation/example ASNs
+    64512..65534,           # RFC 6996 Private ASNs
+    65535,                  # RFC 6996 Last 16 bit ASN
+    65536..65551,           # RFC 5398 and documentation/example ASNs
+    65552..131071,          # RFC IANA reserved ASNs
+    4200000000..4294967294, # RFC 6996 Private ASNs
+    4294967295              # RFC 6996 Last 32 bit ASN
+];
+EOL
+
+#SHARED
+
+cat > /opt/ixpcontrol/data/routeserver/SHARED/protocols.conf <<EOL
+template bgp ix_peer
+{
+	local RS_IP as RS_ASN;
+	rs client;
+}
+
+protocol device {
+		scan time 10;
+}
+EOL
 
 
 read -p "Add Watchtower for Auto-Update of Docker Containers?  [Y/N]" -n 1 -r
@@ -436,7 +598,7 @@ cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
    volumes:
      - /var/run/docker.sock:/var/run/docker.sock
    command: --interval 500
-   
+
 EOL
 
 fi
@@ -515,6 +677,7 @@ cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
       - /opt/ixpcontrol/data/mariadb/data:/var/lib/mysql/data
       - /opt/ixpcontrol/logs/mariadb:/var/lib/mysql/logs
       - /opt/ixpcontrol/data/mariadb/conf:/etc/mysql
+
 EOL
 	 
 fi	 
