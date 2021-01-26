@@ -607,7 +607,7 @@ echo  ""
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
 cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
-  bgpq3:
+  bgpq4:
     image: ixpcontrol/bgpq4.rs
     container_name: BGPQ4.RS
     networks:
@@ -616,9 +616,9 @@ cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
         peering_v6:
             ipv6_address: fd83:7684:f21d:$IP6_GEN:c$IXPID::4
     volumes:
-	  - /opt/ixpcontrol/data/routeserver/v4:/root/ixpcontrol/v4
+      - /opt/ixpcontrol/data/routeserver/v4:/root/ixpcontrol/v4
       - /opt/ixpcontrol/data/routeserver/v6:/root/ixpcontrol/v6
-	  - /opt/ixpcontrol/data/routeserver/shared:/usr/local/etc/shared
+      - /opt/ixpcontrol/data/routeserver/shared:/usr/local/etc/shared
     restart: always
 
 EOL
