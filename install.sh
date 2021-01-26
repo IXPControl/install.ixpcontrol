@@ -246,45 +246,8 @@ docker-compose -f /opt/ixpcontrol/docker-compose.yml up -d
 echo "`date -u` Stop_IXPControl Started" >> /opt/ixpcontrol/logs/ixpcontrol/shell.log
 EOL
 chmod +x /bin/start_ixpcontrol;
-cat > /bin/ixpclient <<EOL
-#!/bin/bash
-clear
-echo ""
-echo -e "\e[32m ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: \e[1m"
-echo -e "\e[32m '####:'##::::'##:'########:::'######:::'#######::'##::: ##:'########:'########:::'#######::'##::::::: \e[1m";
-echo -e "\e[32m . ##::. ##::'##:: ##.... ##:'##... ##:'##.... ##: ###:: ##:... ##..:: ##.... ##:'##.... ##: ##::::::: \e[1m"
-echo -e "\e[32m : ##:::. ##'##::: ##:::: ##: ##:::..:: ##:::: ##: ####: ##:::: ##:::: ##:::: ##: ##:::: ##: ##::::::: \e[1m"
-echo -e "\e[32m : ##::::. ###:::: ########:: ##::::::: ##:::: ##: ## ## ##:::: ##:::: ########:: ##:::: ##: ##::::::: \e[1m"
-echo -e "\e[32m : ##:::: ## ##::: ##.....::: ##::::::: ##:::: ##: ##. ####:::: ##:::: ##.. ##::: ##:::: ##: ##::::::: \e[1m"
-echo -e "\e[32m : ##::: ##:. ##:: ##:::::::: ##::: ##: ##:::: ##: ##:. ###:::: ##:::: ##::. ##:: ##:::: ##: ##::::::: \e[1m"
-echo -e "\e[32m '####: ##:::. ##: ##::::::::. ######::. #######:: ##::. ##:::: ##:::: ##:::. ##:. #######:: ########: \e[1m"
-echo -e "\e[32m ....::..:::::..::..::::::::::......::::.......:::..::::..:::::..:::::..:::::..:::.......:::........:: \e[1m"
-echo -e "\e[32m :::::::::::::::::::::::::::::::::::: https://www.ixpcontrol.com :::::::::::::::::::::::::::(v 0.1a):: \e[1m"
-echo -e "\e[0m"
-echo ":: IXPControl - Shell Interface ::"
-echo ""
-		
-PS3='Please enter your choice: '
-options=("Add Network" "Add Prefix" "Remove Network" "Quit")
-select opt in "${options[@]}"
-do
-    case $opt in
-        "Add Network")
-            echo "Lets add that network!"
-            ;;
-        "Add Prefix")
-            echo "lets add some prefixes!"
-            ;;
-        "Remove Network")
-            echo "you chose choice $REPLY which is $opt"
-            ;;
-        "Quit")
-            break
-            ;;
-        *) echo "invalid option $REPLY";;
-    esac
-done
-EOL
+
+wget https://raw.githubusercontent.com/IXPControl/bins/main/bin/ixpclient -O /bin/ixpclient;
 chmod +x /bin/ixpclient;
 
 
@@ -646,9 +609,9 @@ define PREFIX_MAX	= 8;
 listen bgp address RS_IP;
 
 include "/root/ixpcontrol/SHARED/*.conf";
-include "/root/ixpcontrol/v4/CONFIG/*.conf";
-include "/root/ixpcontrol/v4/PEERS/*/prefix_v4.conf";
-include "/root/ixpcontrol/v4/PEERS/*/peer_v4.conf";
+include "/root/ixpcontrol/CONFIG/*_v4.conf";
+include "/root/ixpcontrol/PEERS/*/prefix_v4.conf";
+include "/root/ixpcontrol/PEERS/*/peer_v4.conf";
 EOL
 
 cat > /opt/ixpcontrol/data/routeserver/CONFIG/bogons.conf <<EOL
@@ -703,9 +666,9 @@ define PREFIX_MAX	= 8;
 listen bgp address RS_IP;
 
 include "/root/ixpcontrol/SHARED/*.conf";
-include "/root/ixpcontrol/v6/CONFIG/*.conf";
-include "/root/ixpcontrol/v6/PEERS/*/prefix_v6.conf";
-include "/root/ixpcontrol/v6/PEERS/*/peer_v6.conf";
+include "/root/ixpcontrol/CONFIG/*_v6.conf";
+include "/root/ixpcontrol/PEERS/*/prefix_v6.conf";
+include "/root/ixpcontrol/PEERS/*/peer_v6.conf";
 EOL
 
 
