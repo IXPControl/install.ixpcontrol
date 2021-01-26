@@ -107,11 +107,186 @@ mkdir -pv /opt/ixpcontrol/www;
 mkdir -pv /opt/ixpcontrol/build;
 
 #Get Bin Stuff, and move it into place.
-git clone http://github.com/IXPControl/bins.git /tmp/ixpcontrol
-chmod +x /tmp/ixpcontrol/bin/*
-mv /tmp/ixpcontrol/bin/* /bin
-cp -rlf /tmp/ixpcontrol/* /
-rm -rf /tmp/ixpcontrol
+#git clone http://github.com/IXPControl/bins.git /tmp/ixpcontrol
+#chmod +x /tmp/ixpcontrol/bin/*
+#mv /tmp/ixpcontrol/bin/* /bin
+#cp -rlf /tmp/ixpcontrol/* /
+#rm -rf /tmp/ixpcontrol
+
+## CREATE BINS
+cat > /bin/ixpcontrol_help <<EOL
+#!/bin/bash
+        clear
+        echo ""
+		echo -e "\e[32m ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: \e[1m"
+		echo -e "\e[32m '####:'##::::'##:'########:::'######:::'#######::'##::: ##:'########:'########:::'#######::'##::::::: \e[1m";
+		echo -e "\e[32m . ##::. ##::'##:: ##.... ##:'##... ##:'##.... ##: ###:: ##:... ##..:: ##.... ##:'##.... ##: ##::::::: \e[1m"
+		echo -e "\e[32m : ##:::. ##'##::: ##:::: ##: ##:::..:: ##:::: ##: ####: ##:::: ##:::: ##:::: ##: ##:::: ##: ##::::::: \e[1m"
+		echo -e "\e[32m : ##::::. ###:::: ########:: ##::::::: ##:::: ##: ## ## ##:::: ##:::: ########:: ##:::: ##: ##::::::: \e[1m"
+		echo -e "\e[32m : ##:::: ## ##::: ##.....::: ##::::::: ##:::: ##: ##. ####:::: ##:::: ##.. ##::: ##:::: ##: ##::::::: \e[1m"
+		echo -e "\e[32m : ##::: ##:. ##:: ##:::::::: ##::: ##: ##:::: ##: ##:. ###:::: ##:::: ##::. ##:: ##:::: ##: ##::::::: \e[1m"
+		echo -e "\e[32m '####: ##:::. ##: ##::::::::. ######::. #######:: ##::. ##:::: ##:::: ##:::. ##:. #######:: ########: \e[1m"
+		echo -e "\e[32m ....::..:::::..::..::::::::::......::::.......:::..::::..:::::..:::::..:::::..:::.......:::........:: \e[1m"
+		echo -e "\e[32m :::::::::::::::::::::::::::::::::::: https://www.ixpcontrol.com :::::::::::::::::::::::::::(v 0.1a):: \e[1m"
+        echo -e "\e[0m"
+		echo "IXPControl is a Community Based, Open-Source Internet Exchange Point Management System"
+		echo "Please Visit https://www.ixpcontrol.com for more info"
+		echo ""
+        echo ":: Core Commands ::"
+		echo ""
+        echo "start/stop_ixpcontrol - Start/Stop All Required CTs (Includes Client BIRD Services)"
+        echo "start/stop_rs - Start/Stop Route Server"
+        echo "start/stop_www - Start/Stop IXPControl Web Interface Management"
+        echo "start/stop_zerotier - Start/Stop ZeroTier One Service"
+        echo "start/stop_openvpn - Start/Stop OpenVPN Service"
+        echo "build_ixp - Build all docker files locally"
+        echo "ixpclient - Create New Connection for IX"
+		echo "rs4 - BIRDC Interface with RouteServer"
+		echo "rs6 - BIRDC6 Interface with RouteServer"
+		echo "up4 - BIRDC Interface with Upstream BGP"
+		echo "up6 - BIRDC Interface with Upstream BGP"
+        echo ""
+		
+EOL
+chmod +x /bin/ixpcontrol_help;
+cat > /bin/rs6 <<EOL
+#!/bin/bash
+echo "`date -u` Invoked ROUTESERVER6 Manual Commands Command via Shell" >> /opt/ixpcontrol/logs/ixpcontrol/shell.log
+docker exec routeserver birdc6
+EOL
+chmod +x /bin/rs6;
+cat > /bin/rs4 <<EOL
+#!/bin/bash
+echo "`date -u` Invoked ROUTESERVER4 Manual Commands Command via Shell" >> /opt/ixpcontrol/logs/ixpcontrol/shell.log
+docker exec routeserver birdc
+EOL
+chmod +x /bin/rs4;
+cat > /bin/up4 <<EOL
+#!/bin/bash
+echo "`date -u` Invoked UPSTREAM4 Manual Commands Command via Shell" >> /opt/ixpcontrol/logs/ixpcontrol/shell.log
+docker exec Upstream_BGP birdc
+EOL
+chmod +x /bin/up4;
+cat > /bin/up6 <<EOL
+#!/bin/bash
+echo "`date -u` Invoked UPSTREAM6 Manual Commands Command via Shell" >> /opt/ixpcontrol/logs/ixpcontrol/shell.log
+docker exec Upstream_BGP birdc6
+EOL
+chmod +x /bin/up6;
+cat > /bin/stop_zerotier <<EOL
+#!/bin/bash
+echo "`date -u` Invoked stop_zerotier Command via Shell" >> /opt/ixpcontrol/logs/ixpcontrol/shell.log
+docker-compose -f /opt/ixpcontrol/docker-compose.yml down zerotier
+echo "`date -u` IXPControl ZeroTier Interface Stopped" >> /opt/ixpcontrol/logs/ixpcontrol/shell.log
+EOL
+chmod +x /bin/stop_zerotier;
+cat > /bin/stop_www <<EOL
+#!/bin/bash
+echo "`date -u` Invoked stop_www Command via Shell" >> /opt/ixpcontrol/logs/ixpcontrol/shell.log
+docker-compose -f /opt/ixpcontrol/docker-compose.yml down ixpcontrol
+echo "`date -u` IXPControl Web Interface Stopped" >> /opt/ixpcontrol/logs/ixpcontrol/shell.log
+EOL
+chmod +x /bin/stop_www;
+cat > /bin/stop_rs <<EOL
+#!/bin/bash
+echo "`date -u` Invoked stop_rs Command via Shell" >> /opt/ixpcontrol/logs/ixpcontrol/shell.log
+docker-compose -f /opt/ixpcontrol/docker-compose.yml down routeserver
+echo "`date -u` IXPControl RouteServer Stopped" >> /opt/ixpcontrol/logs/ixpcontrol/shell.log
+EOL
+chmod +x /bin/stop_rs;
+cat > /bin/stop_openvpn <<EOL
+#!/bin/bash
+echo "`date -u` Invoked stop_openvpn Command via Shell" >> /opt/ixpcontrol/logs/ixpcontrol/shell.log
+docker-compose -f /opt/ixpcontrol/docker-compose.yml down openvpn
+echo "`date -u` IXPControl OpenVPN Interface Stopped" >> /opt/ixpcontrol/logs/ixpcontrol/shell.log
+EOL
+chmod +x /bin/stop_openvpn;
+cat > /bin/stop_ixpcontrol <<EOL
+#!/bin/bash
+echo "`date -u` Invoked Stop_IXPControl Command via Shell" >> /opt/ixpcontrol/logs/ixpcontrol/shell.log
+docker-compose -f /opt/ixpcontrol/docker-compose.yml down
+echo "`date -u` Stop_IXPControl Stopped" >> /opt/ixpcontrol/logs/ixpcontrol/shell.log
+EOL
+chmod +x /bin/stop_ixpcontrol;
+cat > /bin/start_zerotier <<EOL
+#!/bin/bash
+echo "`date -u` Invoked start_zerotier Command via Shell" >> /opt/ixpcontrol/logs/ixpcontrol/shell.log
+docker-compose -f /opt/ixpcontrol/docker-compose.yml up zerotier -d
+echo "`date -u` IXPControl ZeroTier Interface Started" >> /opt/ixpcontrol/logs/ixpcontrol/shell.log
+EOL
+chmod +x /bin/start_zerotier;
+cat > /bin/start_www <<EOL
+#!/bin/bash
+echo "`date -u` Invoked start_www Command via Shell" >> /opt/ixpcontrol/logs/ixpcontrol/shell.log
+docker-compose -f /opt/ixpcontrol/docker-compose.yml up ixpcontrol -d
+echo "`date -u` IXPControl Web Interface Started" >> /opt/ixpcontrol/logs/ixpcontrol/shell.log
+EOL
+chmod +x /bin/start_www;
+cat > /bin/start_rs <<EOL
+#!/bin/bash
+echo "`date -u` Invoked start_rs Command via Shell" >> /opt/ixpcontrol/logs/ixpcontrol/shell.log
+docker-compose -f /opt/ixpcontrol/docker-compose.yml up routeserver -d
+echo "`date -u` IXPControl RouteServer 1 Started" >> /opt/ixpcontrol/logs/ixpcontrol/shell.log
+EOL
+chmod +x /bin/start_rs;
+cat > /bin/start_openvpn <<EOL
+#!/bin/bash
+echo "`date -u` Invoked start_openvpn Command via Shell" >> /opt/ixpcontrol/logs/ixpcontrol/shell.log
+docker-compose -f /opt/ixpcontrol/docker-compose.yml up openvpn -d
+echo "`date -u` IXPControl OpenVPN Interface Started" >> /opt/ixpcontrol/logs/ixpcontrol/shell.log
+EOL
+chmod +x /bin/start_openvpn;
+cat > /bin/start_ixpcontrol <<EOL
+#!/bin/bash
+echo "`date -u` Invoked Stop_IXPControl Command via Shell" >> /opt/ixpcontrol/logs/ixpcontrol/shell.log
+docker-compose -f /opt/ixpcontrol/docker-compose.yml down
+echo "`date -u` Stop_IXPControl Stopped" >> /opt/ixpcontrol/logs/ixpcontrol/shell.log
+echo "`date -u` Invoked Stop_IXPControl Command via Shell" >> /opt/ixpcontrol/logs/ixpcontrol/shell.log
+docker-compose -f /opt/ixpcontrol/docker-compose.yml up -d
+echo "`date -u` Stop_IXPControl Started" >> /opt/ixpcontrol/logs/ixpcontrol/shell.log
+EOL
+chmod +x /bin/start_ixpcontrol;
+cat > /bin/ixpclient <<EOL
+#!/bin/bash
+clear
+echo ""
+echo -e "\e[32m ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: \e[1m"
+echo -e "\e[32m '####:'##::::'##:'########:::'######:::'#######::'##::: ##:'########:'########:::'#######::'##::::::: \e[1m";
+echo -e "\e[32m . ##::. ##::'##:: ##.... ##:'##... ##:'##.... ##: ###:: ##:... ##..:: ##.... ##:'##.... ##: ##::::::: \e[1m"
+echo -e "\e[32m : ##:::. ##'##::: ##:::: ##: ##:::..:: ##:::: ##: ####: ##:::: ##:::: ##:::: ##: ##:::: ##: ##::::::: \e[1m"
+echo -e "\e[32m : ##::::. ###:::: ########:: ##::::::: ##:::: ##: ## ## ##:::: ##:::: ########:: ##:::: ##: ##::::::: \e[1m"
+echo -e "\e[32m : ##:::: ## ##::: ##.....::: ##::::::: ##:::: ##: ##. ####:::: ##:::: ##.. ##::: ##:::: ##: ##::::::: \e[1m"
+echo -e "\e[32m : ##::: ##:. ##:: ##:::::::: ##::: ##: ##:::: ##: ##:. ###:::: ##:::: ##::. ##:: ##:::: ##: ##::::::: \e[1m"
+echo -e "\e[32m '####: ##:::. ##: ##::::::::. ######::. #######:: ##::. ##:::: ##:::: ##:::. ##:. #######:: ########: \e[1m"
+echo -e "\e[32m ....::..:::::..::..::::::::::......::::.......:::..::::..:::::..:::::..:::::..:::.......:::........:: \e[1m"
+echo -e "\e[32m :::::::::::::::::::::::::::::::::::: https://www.ixpcontrol.com :::::::::::::::::::::::::::(v 0.1a):: \e[1m"
+echo -e "\e[0m"
+echo ":: IXPControl - Shell Interface ::"
+echo ""
+		
+PS3='Please enter your choice: '
+options=("Add Network" "Add Prefix" "Remove Network" "Quit")
+select opt in "${options[@]}"
+do
+    case $opt in
+        "Add Network")
+            echo "Lets add that network!"
+            ;;
+        "Add Prefix")
+            echo "lets add some prefixes!"
+            ;;
+        "Remove Network")
+            echo "you chose choice $REPLY which is $opt"
+            ;;
+        "Quit")
+            break
+            ;;
+        *) echo "invalid option $REPLY";;
+    esac
+done
+EOL
+chmod +x /bin/ixpclient;
+
 
 
 #Set .bash_profile
@@ -701,5 +876,7 @@ echo "MySQL Password: $MYSQLROOT"
 echo "MySQL Username: ixpcontrol"
 echo "MySQL Password: $MYSQLPASS"
 echo ""
+
+ixpcontrol_help
 
 
