@@ -7,7 +7,7 @@ fi
 
 apt-get -yq update && apt-get -yq upgrade && apt-get install apt-transport-https ca-certificates curl gnupg2 software-properties-common -qy
 
-echo -n "OceanIXP Server ID [0-9]: "
+echo -n "IXPControl Server ID [0-9]: "
 read IXPID
 if [[ ! $IXPID =~ ^[0-9]+$ ]] ; then
     echo "Whoops.. try again, numbers between zero and nine please."
@@ -95,8 +95,10 @@ mkdir -pv /opt/ixpcontrol/data/arouteserver;
 mkdir -pv /opt/ixpcontrol/data/mariadb/data;
 mkdir -pv /opt/ixpcontrol/data/mariadb/conf;
 mkdir -pv /opt/ixpcontrol/data/apache2/data;
+mkdir -pv /opt/ixpcontrol/data/crontab;
 #Log Folders
 mkdir -pv /opt/ixpcontrol/logs/bgp;
+mkdir -pv /opt/ixpcontrol/logs/crontab;
 mkdir -pv /opt/ixpcontrol/logs/arouteserver;
 mkdir -pv /opt/ixpcontrol/logs/apache2;
 mkdir -pv /opt/ixpcontrol/logs/ixpcontrol;
@@ -341,6 +343,19 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - /opt/ixpcontrol/data/portainer:/data
 
+# Container CronTab App ( https://github.com/willfarrell/docker-crontab )
+  crontab:
+    image: willfarrell/crontab
+    container_name: Crontab_Controller
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /opt/ixpcontrol/data/routeserver:/root/ixpcontrol
+      - /opt/ixpcontrol/data/crontab:/opt/crontab
+      - /opt/ixpcontrol/logs/crontab:/var/log/crontab
+    restart: always
+
+EOL
+
 EOL
 
 read -p "Use BIRD for BGP Session to Upstream? [Y/N]" -n 1 -r
@@ -555,17 +570,18 @@ cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
     volumes:
       - /opt/ixpcontrol/data/routeserver/bird.conf:/usr/local/etc/bird.conf
       - /opt/ixpcontrol/data/routeserver/bird6.conf:/usr/local/etc/bird6.conf
-	  - /opt/ixpcontrol/data/routeserver:/root/ixpcontrol
+      - /opt/ixpcontrol/data/routeserver:/root/ixpcontrol
       - /opt/ixpcontrol/logs/routeserver/bird.log:/var/log/bird.log
       - /opt/ixpcontrol/logs/routeserver/bird6.log:/var/log/bird6.log
 
 EOL
 
-read -p "Add BGPQ3 for Automated IRR Filtering?  [Y/N]" -n 1 -r
+read -p "Add BGPQ4 for Automated IRR Filtering?  [Y/N]" -n 1 -r
 echo  ""
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
 cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
+# Automated IRR Filtering App ( https://github.com/bgp/bgpq4 )
   bgpq4:
     image: ixpcontrol/bgpq4.rs
     container_name: BGPQ4.RS
@@ -576,12 +592,11 @@ cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
             ipv6_address: fd83:7684:f21d:$IP6_GEN:c$IXPID::4
     volumes:
       - /opt/ixpcontrol/data/routeserver:/root/ixpcontrol
+      - /opt/ixpcontrol/data/crontab:/root/crontab
     restart: always
 
 EOL
 fi
-
-## Add info here, to set up RS Configs :)
 
 
 ##IPv4 GEN
@@ -779,6 +794,7 @@ cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
 
   ixpcontrol:
     image: ixpcontrol/www
+	container_name: IXPControl
     depends_on:
       - mariadb
     restart: always
