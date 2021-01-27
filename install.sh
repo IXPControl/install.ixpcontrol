@@ -55,7 +55,6 @@ apt-get -yq install \
   containerd.io
   
 # Get Variables..
-IP_ADDR=$(curl -s https://ip.ixpcontrol.com)
 IP6_GEN=$(cat /dev/urandom | tr -dc 'a-f0-9' | fold -w 4 | head -n 1)
 COMPOSE_VERSION=$(git ls-remote https://github.com/docker/compose | grep refs/tags | grep -oE "[0-9]+\.[0-9][0-9]+\.[0-9]+$" | sort --version-sort | tail -n 1)
 MYSQLPASS=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 10 | head -n 1)
@@ -96,6 +95,7 @@ mkdir -pv /opt/ixpcontrol/data/mariadb/data;
 mkdir -pv /opt/ixpcontrol/data/mariadb/conf;
 mkdir -pv /opt/ixpcontrol/data/apache2/data;
 mkdir -pv /opt/ixpcontrol/data/crontab;
+mkdir -pv /opt/ixpcontrol/data/zerotier;
 #Log Folders
 mkdir -pv /opt/ixpcontrol/logs/bgp;
 mkdir -pv /opt/ixpcontrol/logs/crontab;
@@ -394,7 +394,7 @@ read -p "Neighbour IP: "  bgp4UpNeigh
 echo "Setting $bgpUpNeigh"
 read -p "Anchor Subnet: "  bgp4Anchor
 echo "Setting $bgpAnchor"
-
+IP_ADDR=$(curl -s https://ip.ixpcontrol.com)
 cat >> /opt/ixpcontrol/data/bgp/bird.conf <<EOL
 router id $IP_ADDR;
 
@@ -454,7 +454,7 @@ read -p "Neighbour IP: "  bgp6UpNeigh
 echo "Setting $bgpUpNeigh"
 read -p "Anchor Subnet: "  bgp6Anchor
 echo "Setting $bgpAnchor"
-
+IP_ADDR=$(curl -s https://ip.ixpcontrol.com)
 cat >> /opt/ixpcontrol/data/bgp/bird6.conf <<EOL
 router id $IP_ADDR;
 
@@ -520,6 +520,8 @@ cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
     network_mode: host
     privileged: true
     restart: always
+    volumes:
+      - /opt/ixpcontrol/data/zerotier:/var/lib/zerotier-one
     environment:
       - NETWORK_ID=$zeroNetwork
 EOL
@@ -838,7 +840,7 @@ if [[ ! -e /opt/ixpcontrol/data/routeserver/bird6.conf ]]; then
 fi 
 
 start_ixpcontrol
-
+IP_ADDR=$(curl -s https://ip.ixpcontrol.com)
 echo -e "\e[32m ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: \e[1m"
 echo -e "\e[32m '####:'##::::'##:'########:::'######:::'#######::'##::: ##:'########:'########:::'#######::'##::::::: \e[1m";
 echo -e "\e[32m . ##::. ##::'##:: ##.... ##:'##... ##:'##.... ##: ###:: ##:... ##..:: ##.... ##:'##.... ##: ##::::::: \e[1m"
