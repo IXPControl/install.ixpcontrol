@@ -834,7 +834,7 @@ if [[ ! -e /opt/ixpcontrol/data/routeserver/bird.conf ]]; then
    echo "#BLANKFILE#" > /opt/ixpcontrol/data/routeserver/bird.conf
 fi 
 if [[ ! -e /opt/ixpcontrol/data/routeserver/bird6.conf ]]; then
-   echo "#BLANKFILE#" > /opt/ixpcontrol/data/routeserver/bird.conf
+   echo "#BLANKFILE#" > /opt/ixpcontrol/data/routeserver/bird6.conf
 fi 
 
 start_ixpcontrol
