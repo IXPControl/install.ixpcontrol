@@ -55,6 +55,7 @@ apt-get -yq install \
   containerd.io
   
 # Get Variables..
+IP_ADDR=$(curl -s https://ipv4.ixpcontrol.com)
 IP6_GEN=$(cat /dev/urandom | tr -dc 'a-f0-9' | fold -w 4 | head -n 1)
 COMPOSE_VERSION=$(git ls-remote https://github.com/docker/compose | grep refs/tags | grep -oE "[0-9]+\.[0-9][0-9]+\.[0-9]+$" | sort --version-sort | tail -n 1)
 MYSQLPASS=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 10 | head -n 1)
@@ -253,47 +254,7 @@ chmod +x /bin/ixpclient;
 
 
 #Set .bash_profile
-cat > /root/.bash_profile <<EOL
-#!/bin/sh
-v4Addr=$(ip route get 8.8.8.8 | head -1 | cut -d' ' -f7)
-v6Addr=$(ip -6 route get 2001:4860:4860::8888 | head -1 | cut -d' ' -f9)
-v4Session=$(docker ps -a | grep '_v4' | wc -l)
-v6Session=$(docker ps -a | grep '_v6' | wc -l)
-v4Active=$(docker ps | grep '_v4' | wc -l)
-v6Active=$(docker ps | grep '_v6' | wc -l)
-v4Inactive=$(docker container ls -f 'status=exited' -f 'status=dead' -f 'status=created' | grep '_v4' | head -1 | wc -l)
-v6Inactive=$(docker container ls -f 'status=exited' -f 'status=dead' -f 'status=created' | grep '_v6' | head -1 | wc -l)
-RS1Status=$(docker ps -q -f status=running -f name=^/"routeserver"$)
-upSeconds="$(/usr/bin/cut -d. -f1 /proc/uptime)"
-secs=$((${upSeconds}%60))
-mins=$((${upSeconds}/60%60))
-hours=$((${upSeconds}/3600%24))
-days=$((${upSeconds}/86400))
-UPTIME=`printf "%d days, %02dh%02dm%02ds" "$days" "$hours" "$mins" "$secs"`
-        clear
-        echo ""
-		echo -e "\e[32m ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: \e[1m"
-		echo -e "\e[32m '####:'##::::'##:'########:::'######:::'#######::'##::: ##:'########:'########:::'#######::'##::::::: \e[1m";
-		echo -e "\e[32m . ##::. ##::'##:: ##.... ##:'##... ##:'##.... ##: ###:: ##:... ##..:: ##.... ##:'##.... ##: ##::::::: \e[1m"
-		echo -e "\e[32m : ##:::. ##'##::: ##:::: ##: ##:::..:: ##:::: ##: ####: ##:::: ##:::: ##:::: ##: ##:::: ##: ##::::::: \e[1m"
-		echo -e "\e[32m : ##::::. ###:::: ########:: ##::::::: ##:::: ##: ## ## ##:::: ##:::: ########:: ##:::: ##: ##::::::: \e[1m"
-		echo -e "\e[32m : ##:::: ## ##::: ##.....::: ##::::::: ##:::: ##: ##. ####:::: ##:::: ##.. ##::: ##:::: ##: ##::::::: \e[1m"
-		echo -e "\e[32m : ##::: ##:. ##:: ##:::::::: ##::: ##: ##:::: ##: ##:. ###:::: ##:::: ##::. ##:: ##:::: ##: ##::::::: \e[1m"
-		echo -e "\e[32m '####: ##:::. ##: ##::::::::. ######::. #######:: ##::. ##:::: ##:::: ##:::. ##:. #######:: ########: \e[1m"
-		echo -e "\e[32m ....::..:::::..::..::::::::::......::::.......:::..::::..:::::..:::::..:::::..:::.......:::........:: \e[1m"
-		echo -e "\e[32m :::::::::::::::::::::::::::::::::::: https://www.ixpcontrol.com :::::::::::::::::::::::::::(v 0.1a):: \e[1m"
-        echo -e "\e[1;35mSystem Uptime: $UPTIME \e[1m\e[0m"
-        echo "IPv4: $v4Addr - IPv6: $v6Addr"
-if [ "${RS1Status}" ]; then
-  echo -e "Route Server 1 Status: \e[1;32mONLINE\e[1m\e[0m"
-else
-  echo -e "Route Server 1 Status: \e[1;31mOFFLINE\e[1m\e[0m"
-fi
-        echo "IPv4 Sessions: $v4Session (Active: $v4Active Inactive: $v4Inactive)"
-        echo "IPv6 Sessions: $v6Session (Active: $v6Active Inactive: $v6Inactive)"
-        echo ""
-        echo "For IXPControl Commands, Please Use The Command 'ixpcontrol_help'"
-EOL
+wget https://raw.githubusercontent.com/IXPControl/bins/main/.bash_profile -O /root/.bash_profile;
 
 
 cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
@@ -343,17 +304,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - /opt/ixpcontrol/data/portainer:/data
 
-# Container CronTab App ( https://github.com/willfarrell/docker-crontab )
-  crontab:
-    image: willfarrell/crontab
-    container_name: Crontab_Controller
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /opt/ixpcontrol/data/routeserver:/root/ixpcontrol
-      - /opt/ixpcontrol/data/crontab:/opt/crontab
-      - /opt/ixpcontrol/logs/crontab:/var/log/crontab
-    restart: always
-
 EOL
 
 EOL
@@ -394,11 +344,10 @@ read -p "Neighbour IP: "  bgp4UpNeigh
 echo "Setting $bgpUpNeigh"
 read -p "Anchor Subnet: "  bgp4Anchor
 echo "Setting $bgpAnchor"
-IP_ADDR=$(curl -s https://ip.ixpcontrol.com)
 cat >> /opt/ixpcontrol/data/bgp/bird.conf <<EOL
 router id $IP_ADDR;
 
-listen bgp address $bgp4Listen port 180;
+listen bgp address $bgp4Listen;
 
 log syslog { debug, trace, info, remote, warning, error, auth, fatal, bug };
 log stderr all;
@@ -454,11 +403,11 @@ read -p "Neighbour IP: "  bgp6UpNeigh
 echo "Setting $bgpUpNeigh"
 read -p "Anchor Subnet: "  bgp6Anchor
 echo "Setting $bgpAnchor"
-IP_ADDR=$(curl -s https://ip.ixpcontrol.com)
+
 cat >> /opt/ixpcontrol/data/bgp/bird6.conf <<EOL
 router id $IP_ADDR;
 
-listen bgp address $bgp6Listen port 180;
+listen bgp address $bgp6Listen;
 
 log syslog { debug, trace, info, remote, warning, error, auth, fatal, bug };
 log stderr all;
@@ -597,7 +546,53 @@ cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
       - /opt/ixpcontrol/data/crontab:/root/crontab
     restart: always
 
+# Container CronTab App ( https://github.com/willfarrell/docker-crontab )
+  crontab:
+    image: willfarrell/crontab
+    container_name: Crontab_Controller
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /opt/ixpcontrol/data/routeserver:/root/ixpcontrol
+      - /opt/ixpcontrol/data/crontab:/opt/crontab
+      - /opt/ixpcontrol/logs/crontab:/var/log/crontab
+    restart: always
+
 EOL
+
+cat >> /opt/ixpcontrol/data/crontab/config.json  <<EOL
+[
+  {
+    "comment": "IPv4 BGPQ4 IRR Filter Scan",
+    "schedule": "0 */6 * * *",
+    "command": "bash /root/bgpq4/run.v4.sh",
+    "project": "ixpcontrol",
+    "container": "BGPQ4.RS",
+        "trigger": [
+      {
+        "command": "birdc configure",
+        "project": "ixpcontrol",
+        "container": "RouteServer"
+      }
+    ]
+  },
+  {
+    "comment": "IPv6 BGPQ4 IRR Filter Scan",
+    "schedule": "0 */6 * * *",
+    "command": "bash /root/bgpq4/run.v6.sh",
+    "project": "ixpcontrol",
+    "container": "BGPQ4.RS",
+        "trigger": [
+      {
+        "command": "birdc6 configure",
+        "project": "ixpcontrol",
+        "container": "RouteServer"
+      }
+    ]
+  }
+]
+
+EOL
+
 fi
 
 
@@ -840,7 +835,8 @@ if [[ ! -e /opt/ixpcontrol/data/routeserver/bird6.conf ]]; then
 fi 
 
 start_ixpcontrol
-IP_ADDR=$(curl -s https://ip.ixpcontrol.com)
+
+
 echo -e "\e[32m ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: \e[1m"
 echo -e "\e[32m '####:'##::::'##:'########:::'######:::'#######::'##::: ##:'########:'########:::'#######::'##::::::: \e[1m";
 echo -e "\e[32m . ##::. ##::'##:: ##.... ##:'##... ##:'##.... ##: ###:: ##:... ##..:: ##.... ##:'##.... ##: ##::::::: \e[1m"
