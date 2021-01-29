@@ -306,8 +306,6 @@ services:
 
 EOL
 
-EOL
-
 read -p "Use BIRD for BGP Session to Upstream? [Y/N]" -n 1 -r
 echo  ""
 if [[ $REPLY =~ ^[Yy]$ ]]
@@ -522,8 +520,6 @@ cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
       - /opt/ixpcontrol/data/routeserver/bird.conf:/usr/local/etc/bird.conf
       - /opt/ixpcontrol/data/routeserver/bird6.conf:/usr/local/etc/bird6.conf
       - /opt/ixpcontrol/data/routeserver:/root/ixpcontrol
-      - /opt/ixpcontrol/logs/routeserver/bird.log:/var/log/bird.log
-      - /opt/ixpcontrol/logs/routeserver/bird6.log:/var/log/bird6.log
 
 EOL
 
