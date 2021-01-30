@@ -91,6 +91,7 @@ mkdir -pv /opt/ixpcontrol/data/portainer;
 mkdir -pv /opt/ixpcontrol/data/routeserver/CONFIG;
 mkdir -pv /opt/ixpcontrol/data/routeserver/PEERS;
 mkdir -pv /opt/ixpcontrol/data/routeserver/SHARED;
+mkdir -pv /opt/ixpcontrol/data/routeserver/QUEUE;
 mkdir -pv /opt/ixpcontrol/data/arouteserver;
 mkdir -pv /opt/ixpcontrol/data/mariadb/data;
 mkdir -pv /opt/ixpcontrol/data/mariadb/conf;
@@ -584,6 +585,25 @@ cat >> /opt/ixpcontrol/data/crontab/config.json  <<EOL
         "container": "RouteServer"
       }
     ]
+  },
+    {
+    "comment": "New RS User Scan",
+    "schedule": "*/5 * * * *",
+    "command": "bash /root/bgpq4/queue.sh",
+    "project": "ixpcontrol",
+    "container": "BGPQ4.RS",
+        "trigger": [
+      {
+        "command": "birdc6 configure",
+        "project": "ixpcontrol",
+        "container": "RouteServer"
+      }
+	  {
+        "command": "birdc configure",
+        "project": "ixpcontrol",
+        "container": "RouteServer"
+      }
+    ]
   }
 ]
 
@@ -800,6 +820,20 @@ cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
       - /opt/ixpcontrol/logs/apache2:/var/log/apache2
       - /opt/ixpcontrol/data/apache2/data:/etc/apache2
 
+  ixpapi:
+    image: ixpcontrol/www.api
+	container_name: IXPControl_API
+    depends_on:
+      - routeserver
+      - bgpq4
+    restart: always
+    ports:
+      - 9099:80
+    volumes: 
+      - /opt/ixpcontrol/www.api/html:/app/public
+      - /opt/ixpcontrol/www.api/key:/app/key
+      - /opt/ixpcontrol/data/routeserver/QUEUE:/app/html/queue
+
   mariadb:
     image: ixpcontrol/mariadb
     container_name: mariadb
@@ -821,6 +855,8 @@ cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
 
 EOL
 	 
+	wget https://raw.githubusercontent.com/IXPControl/install.ixpcontrol/main/files/www.api/index.php -O /opt/ixpcontrol/data/www.api/html/index.php
+	
 fi	 
 
 if [[ ! -e /opt/ixpcontrol/data/routeserver/bird.conf ]]; then
