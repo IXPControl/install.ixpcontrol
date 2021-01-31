@@ -775,6 +775,7 @@ cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
     ports:
       - 9099:80
     volumes: 
+      - /var/run/docker.sock:/var/run/docker.sock
       - /opt/ixpcontrol/www.api/html:/app/public
       - /opt/ixpcontrol/www.api/key:/app/key
       - /opt/ixpcontrol/data/routeserver/QUEUE:/app/html/queue
