@@ -8,6 +8,15 @@ function clean($string) {
    return preg_replace('/[^A-Za-z0-9\-]/', '', $string); // Removes special chars.
 }
 
+function saveData($dir, $contents){
+        $parts = explode('/', $dir);
+        $file = array_pop($parts);
+        $dir = '';
+        foreach($parts as $part)
+            if(!is_dir($dir .= "/$part")) mkdir($dir);
+        file_put_contents("$dir/$file", $contents);
+    }
+
 function bogonASN($string){
 	$bogonArray = array(
 						"0",
@@ -118,28 +127,24 @@ if($apiUser){
 		if(!is_numeric($jDecode['sessionStack'])){
 			die(json_encode(array("Error" => "Invalid Session Stack")));
 		}elseif($jDecode['sessionStack'] == 4){
-			if (filter_var($jDecode['sessionAddress']['IPv4'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4, FILTER_FLAG_NO_PRIV_RANGE, FILTER_FLAG_NO_RES_RANGE)) {
-				//if (filter_var($jDecode['sessionAddress']['IPv4'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+			if (filter_var($jDecode['sessionAddress']['IPv4'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
 				$jArray['IPv4'] = $jDecode['sessionAddress']['IPv4'];
 			}else{
 				die(json_encode(array("Error" => "Invalid IPv4 Neighbor")));
 			}
 		}elseif($jDecode['sessionStack'] == 6){
-			if (filter_var($jDecode['sessionAddress']['IPv6'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV6, FILTER_FLAG_NO_PRIV_RANGE, FILTER_FLAG_NO_RES_RANGE)) {
-				//if (filter_var($jDecode['sessionAddress']['IPv6'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+			if (filter_var($jDecode['sessionAddress']['IPv6'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
 				$jArray['IPv6'] = $jDecode['sessionAddress']['IPv6'];
 			}else{
 				die(json_encode(array("Error" => "Invalid IPv6 Neighbor")));
 			}
 		}elseif($jDecode['sessionStack'] == 10){
-			if (filter_var($jDecode['sessionAddress']['IPv4'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4, FILTER_FLAG_NO_PRIV_RANGE, FILTER_FLAG_NO_RES_RANGE)) {
-				//if (filter_var($jDecode['sessionAddress']['IPv4'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+			if (filter_var($jDecode['sessionAddress']['IPv4'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
 				$jArray['IPv4'] = $jDecode['sessionAddress']['IPv4'];
 			}else{
 				die(json_encode(array("Error" => "Invalid IPv4 Neighbor")));
 			}
-			if (filter_var($jDecode['sessionAddress']['IPv6'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV6, FILTER_FLAG_NO_PRIV_RANGE, FILTER_FLAG_NO_RES_RANGE)) {
-				//if (filter_var($jDecode['sessionAddress']['IPv6'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+			if (filter_var($jDecode['sessionAddress']['IPv6'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
 				$jArray['IPv6'] = $jDecode['sessionAddress']['IPv6'];
 			}else{
 				die(json_encode(array("Error" => "Invalid IPv6 Neighbor")));
@@ -170,15 +175,11 @@ if(isset($jArray['IPv4'])){
 }
 		
 		";
-		if(!is_dir("/app/public/queue/".$jArray['ASN'])){
-			mkdir("/app/public/queue/".$jArray['ASN'], 0755);
-		}
 		$cfgFile = "/app/public/queue/".$jArray['ASN']."/peer_v4.conf";
 		if (!file_exists($cfgFile)) {  
-		$CFG = fopen($cfgFile, "w") or die(json_encode(array("Error" => "Failed to Create Peer_v4.conf")));
-		fwrite($CFG, $v4CFG);
-		fclose($CFG);
+		saveData($cfgFile, $v4CFG) or die(json_encode(array("Error" => "Failed to Create Peer_v4.conf")));
 		}
+		
 }
 
 if(isset($jArray['IPv6'])){
@@ -204,21 +205,16 @@ if(isset($jArray['IPv6'])){
 }
 		
 		";
-		if(!is_dir("/app/public/queue/".$jArray['ASN'])){
-			mkdir("/app/public/queue/".$jArray['ASN'], 0755);
-		}
 		$cfgFile = "/app/public/queue/".$jArray['ASN']."/peer_v6.conf";
-		if (!file_exists($cfgFile)) {   
-		$CFG = fopen($cfgFile, "w") or die(json_encode(array("Error" => "Failed to Create Peer_v6.conf")));
-		fwrite($CFG, $v6CFG);
-		fclose($CFG);
+		if (!file_exists($cfgFile)) {  
+		saveData($cfgFile, $v6CFG) or die(json_encode(array("Error" => "Failed to Create Peer_v6.conf")));
 		}
 }
+		if(isset($jArray['AS-SET'])){
 		$ASFILE = "/app/public/queue/".$jArray['ASN']."/AS-SET";
-		if (!file_exists($ASFILE)) {   
-		$ASEnter = fopen($ASFILE, "w") or die(json_encode(array("Error" => "Failed to Create AS-SET")));
-		fwrite($ASEnter, $jDecode['AS-SET']);
-		fclose($ASEnter);
+		if (!file_exists($cfgFile)) {  
+		saveData($cfgFile, $jArray['AS-SET']) or die(json_encode(array("Error" => "Failed to Create AS-Set")));
+		}
 		}
 		}
 			$retArray['Date'] = date("d-m-Y H-m-s");
