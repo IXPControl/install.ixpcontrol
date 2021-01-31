@@ -108,13 +108,6 @@ mkdir -pv /opt/ixpcontrol/logs/ixpcontrol;
 mkdir -pv /opt/ixpcontrol/www;
 mkdir -pv /opt/ixpcontrol/build;
 
-#Get Bin Stuff, and move it into place.
-#git clone http://github.com/IXPControl/bins.git /tmp/ixpcontrol
-#chmod +x /tmp/ixpcontrol/bin/*
-#mv /tmp/ixpcontrol/bin/* /bin
-#cp -rlf /tmp/ixpcontrol/* /
-#rm -rf /tmp/ixpcontrol
-
 ## CREATE BINS
 cat > /bin/ixpcontrol_help <<EOL
 #!/bin/bash
@@ -567,10 +560,10 @@ cat >> /opt/ixpcontrol/data/crontab/config.json  <<EOL
         "trigger": [
       {
         "command": "birdc configure",
-        "project": "ixpcontrol",
         "container": "RouteServer"
       }
-    ]
+    ],
+	"onstart":true
   },
   {
     "comment": "IPv6 BGPQ4 IRR Filter Scan",
@@ -581,32 +574,29 @@ cat >> /opt/ixpcontrol/data/crontab/config.json  <<EOL
         "trigger": [
       {
         "command": "birdc6 configure",
-        "project": "ixpcontrol",
         "container": "RouteServer"
       }
-    ]
+    ],
+	"onstart":true
   },
     {
     "comment": "New RS User Scan",
-    "schedule": "*/5 * * * *",
+    "schedule": "@every 5m",
     "command": "bash /root/bgpq4/queue.sh",
-    "project": "ixpcontrol",
     "container": "BGPQ4.RS",
         "trigger": [
       {
         "command": "birdc6 configure",
-        "project": "ixpcontrol",
         "container": "RouteServer"
-      }
+      },
 	  {
         "command": "birdc configure",
-        "project": "ixpcontrol",
         "container": "RouteServer"
       }
-    ]
+    ],
+	"onstart":true
   }
 ]
-
 EOL
 
 fi
@@ -808,5 +798,6 @@ echo -e "\e[32m '####: ##:::. ##: ##::::::::. ######::. #######:: ##::. ##:::: #
 echo -e "\e[32m ....::..:::::..::..::::::::::......::::.......:::..::::..:::::..:::::..:::::..:::.......:::........:: \e[1m"
 echo -e "\e[32m :::::::::::::::::::::::::::::::::::: https://www.ixpcontrol.com :::::::::::::::::::::::::::(v 0.1a):: \e[1m"
 echo "IXP Control API Key: $UUIDSet"
+echo "To Auto-Add this Server to your IXPControl Master Server, use the command \"ixpjoin XXX.XXX.XXX.XXX\" replacing the XXX.XXX.XXX.XXX with the IP address of your master server."
 echo ""
 
