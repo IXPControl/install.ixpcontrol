@@ -763,62 +763,7 @@ EOL
 
 fi
 
-read -p "Add ARouteServer? (Manual configuration required)  [Y/N]" -n 1 -r
-echo  ""
-if [[ $REPLY =~ ^[Yy]$ ]]
-then
-
-
 cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
-
-## ARouteServer ( https://arouteserver.readthedocs.io )
-  arouteserver:
-    image: ixpcontrol/arouteserver
-    container_name: arouteserver
-    restart: unless-stopped
-    networks:
-        peering_v4:
-            ipv4_address: 10.10.$IXPID.2
-        peering_v6:
-            ipv6_address: fd83:7684:f21d:$IP6_GEN:c$IXPID::2
-    environment:
-      SETUP_AND_CONFIGURE_AROUTESERVER: 0
-      PUID: 1001
-      PGID: 1001
-    volumes:
-      - /opt/ixpcontrol/data/routeserver/bird.conf:/etc/bird/bird.conf
-      - /opt/ixpcontrol/data/routeserver/bird6.conf:/etc/bird/bird6.conf
-      - /opt/ixpcontrol/data/arouteserver/clients.yml:/root/clients.yml
-      - /opt/ixpcontrol/data/arouteserver/general.yml:/etc/arouteserver/general.yml
-      - /opt/ixpcontrol/logs/arouteserver/bird.log:/var/log/bird.log
-
-EOL
-
-
-fi
-
-
-read -p "Install the Panel Stuff?  [Y/N]" -n 1 -r
-echo  ""
-if [[ $REPLY =~ ^[Yy]$ ]]
-then
-
-cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
-
-  ixpcontrol:
-    image: ixpcontrol/www
-	container_name: IXPControl
-    depends_on:
-      - mariadb
-    restart: always
-    ports:
-      - 9999:80
-    links:
-      - mariadb
-    volumes: 
-      - /opt/ixpcontrol/www:/var/www/html
-      - /opt/ixpcontrol/logs/apache2:/var/log/apache2
-      - /opt/ixpcontrol/data/apache2/data:/etc/apache2
 
   ixpapi:
     image: ixpcontrol/www.api
@@ -834,30 +779,12 @@ cat >> /opt/ixpcontrol/docker-compose.yml <<EOL
       - /opt/ixpcontrol/www.api/key:/app/key
       - /opt/ixpcontrol/data/routeserver/QUEUE:/app/html/queue
 
-  mariadb:
-    image: ixpcontrol/mariadb
-    container_name: mariadb
-    environment:
-      MYSQL_ROOT_PASSWORD: $MYSQLROOT
-      MYSQL_DATABASE: ixpcontrol
-      MYSQL_USER: ixpcontrol
-      MYSQL_PASSWORD: $MYSQLPASS
-    networks:
-        peering_v4:
-            ipv4_address: 10.10.$IXPID.3
-        peering_v6:
-            ipv6_address: fd83:7684:f21d:$IP6_GEN:c$IXPID::3
-    restart: always
-    volumes:
-      - /opt/ixpcontrol/data/mariadb/data:/var/lib/mysql/data
-      - /opt/ixpcontrol/logs/mariadb:/var/lib/mysql/logs
-      - /opt/ixpcontrol/data/mariadb/conf:/etc/mysql
-
 EOL
-	 
+	UUID=$(cat /proc/sys/kernel/random/uuid) 
+	echo $UUID > /opt/ixpcontrol/www.api/key/api.key
+	UUIDSet=$(cat /opt/ixpcontrol/www.api/key/api.key)
 	wget https://raw.githubusercontent.com/IXPControl/install.ixpcontrol/main/files/www.api/index.php -O /opt/ixpcontrol/data/www.api/html/index.php
 	
-fi	 
 
 if [[ ! -e /opt/ixpcontrol/data/routeserver/bird.conf ]]; then
    echo "#BLANKFILE#" > /opt/ixpcontrol/data/routeserver/bird.conf
@@ -879,13 +806,6 @@ echo -e "\e[32m : ##::: ##:. ##:: ##:::::::: ##::: ##: ##:::: ##: ##:. ###:::: #
 echo -e "\e[32m '####: ##:::. ##: ##::::::::. ######::. #######:: ##::. ##:::: ##:::: ##:::. ##:. #######:: ########: \e[1m"
 echo -e "\e[32m ....::..:::::..::..::::::::::......::::.......:::..::::..:::::..:::::..:::::..:::.......:::........:: \e[1m"
 echo -e "\e[32m :::::::::::::::::::::::::::::::::::: https://www.ixpcontrol.com :::::::::::::::::::::::::::(v 0.1a):: \e[1m"
-echo "IXPControl: http://$IP_ADDR:9999"
-echo "MySQL Username: root"
-echo "MySQL Password: $MYSQLROOT"
-echo "MySQL Username: ixpcontrol"
-echo "MySQL Password: $MYSQLPASS"
+echo "IXP Control API Key: $UUIDSet"
 echo ""
-
-ixpcontrol_help
-
 
