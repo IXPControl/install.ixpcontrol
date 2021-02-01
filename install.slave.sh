@@ -242,6 +242,9 @@ echo "`date -u` Stop_IXPControl Started" >> /opt/ixpcontrol/logs/ixpcontrol/shel
 EOL
 chmod +x /bin/start_ixpcontrol;
 
+wget https://raw.githubusercontent.com/IXPControl/bins/main/bin/ixpjoin -O /bin/ixpjoin;
+chmod +x /bin/ixpjoin;
+
 wget https://raw.githubusercontent.com/IXPControl/bins/main/bin/ixpclient -O /bin/ixpclient;
 chmod +x /bin/ixpclient;
 
